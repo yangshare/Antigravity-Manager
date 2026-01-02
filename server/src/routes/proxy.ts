@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ProxyService } from '../services/ProxyService';
 import { ApiResponse } from '../types';
 
-const router = Router();
+const router: Router = Router();
 const proxyService = new ProxyService();
 
 /**

@@ -194,7 +194,7 @@ export class ProxyService {
     if (error instanceof AxiosError) {
       const status = error.response?.status;
       // 429 限流、401 认证失败、5xx 服务器错误
-      return status === 429 || status === 401 || (status && status >= 500);
+      return status === 429 || status === 401 || (status !== undefined && status >= 500);
     }
     return false;
   }

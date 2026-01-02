@@ -28,7 +28,7 @@ export function errorHandler(
   });
 }
 
-export function notFoundHandler(req: Request, res: Response): void {
+export function notFoundHandler(req: Request, res: Response, next?: NextFunction): void {
   res.status(404).json({
     success: false,
     error: `路径不存在: ${req.method} ${req.path}`,

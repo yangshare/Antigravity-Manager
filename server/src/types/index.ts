@@ -84,3 +84,11 @@ export interface RequestLog {
   model?: string;
   tokensUsed?: number;
 }
+
+// 刷新统计类型
+export interface RefreshStats {
+  total: number;
+  success: number;
+  failed: number;
+  details?: string[];
+}

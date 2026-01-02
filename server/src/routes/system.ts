@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ApiResponse } from '../types';
 import { DatabaseConnection } from '../database/Database';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /health

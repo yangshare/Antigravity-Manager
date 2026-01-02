@@ -5,7 +5,11 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "dev:web": "cd web && pnpm dev",
+    "dev:all": "pnpm build && concurrently \"pnpm dev\" \"pnpm dev:web\"",
     "build": "tsc",
+    "build:web": "cd web && pnpm build",
+    "build:all": "pnpm build && pnpm build:web",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
@@ -34,6 +38,7 @@
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
     "prettier": "^3.2.4",
     "tsx": "^4.7.0",

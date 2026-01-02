@@ -1,5 +1,5 @@
 import { AccountRepository } from '../database/AccountRepository';
-import { Account, TokenData, QuotaData, RefreshStats } from '../types';
+import { Account, TokenData, QuotaData, RefreshStats } from '../types/index';
 import { logger } from '../config/logger';
 import axios from 'axios';
 

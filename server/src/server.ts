@@ -1,5 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './config';
 import { logger } from './config/logger';
 import { DatabaseConnection } from './database/Database';
@@ -8,6 +10,9 @@ import { requestLogger } from './middleware/logger';
 import accountRoutes from './routes/accounts';
 import proxyRoutes from './routes/proxy';
 import systemRoutes from './routes/system';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class Server {
   private app: Application;
@@ -48,22 +53,34 @@ class Server {
   }
 
   private setupRoutes(): void {
-    // Health check
+    // API routes first
+    this.app.use(systemRoutes);
+    this.app.use('/api/accounts', accountRoutes);
+    this.app.use('/v1', proxyRoutes);
+    this.app.use('/api/proxy', proxyRoutes);
+
+    // Serve static files from web build (production)
+    const webDistPath = path.join(__dirname, '../dist/web');
+    this.app.use(express.static(webDistPath));
+
+    // Root redirect to web UI
     this.app.get('/', (req, res) => {
       res.json({
         name: 'Antigravity Web Server',
         version: '1.0.0',
         status: 'running',
+        webUI: '/index.html',
       });
     });
 
-    // System routes
-    this.app.use(systemRoutes);
-
-    // API routes
-    this.app.use('/api/accounts', accountRoutes);
-    this.app.use('/v1', proxyRoutes);
-    this.app.use('/api/proxy', proxyRoutes);
+    // SPA fallback - all other routes serve index.html
+    this.app.get('*', (req, res) => {
+      // Don't redirect API routes
+      if (req.path.startsWith('/api') || req.path.startsWith('/v1') || req.path === '/health') {
+        return notFoundHandler(req, res, () => {});
+      }
+      res.sendFile(path.join(webDistPath, 'index.html'));
+    });
 
     // 404 handler
     this.app.use(notFoundHandler);
@@ -78,7 +95,8 @@ class Server {
       logger.info(`🚀 服务器启动成功`);
       logger.info(`📍 端口: ${config.port}`);
       logger.info(`🌐 环境: ${config.nodeEnv}`);
-      logger.info(`🔗 访问地址: http://localhost:${config.port}`);
+      logger.info(`🔗 Web UI: http://localhost:${config.port}`);
+      logger.info(`📦 API Base: http://localhost:${config.port}/api`);
     });
   }
 
