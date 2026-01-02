@@ -21,7 +21,16 @@
       "Bash(npx node-gyp rebuild:*)",
       "Bash(pnpm create:*)",
       "Bash(pnpm build)",
-      "mcp__serena__find_file"
+      "mcp__serena__find_file",
+      "Bash(powershell:*)",
+      "Bash(ping:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"taskkill /F /PID 25536\")",
+      "Bash(wmic process where \"ProcessId=25536\" delete)",
+      "Bash(node:*)"
     ]
   }
 }

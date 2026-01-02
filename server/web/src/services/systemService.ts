@@ -4,14 +4,14 @@ import type { SystemInfo, ProxyStatus } from '../types/api';
 export const systemService = {
   // 获取系统信息
   async getSystemInfo(): Promise<SystemInfo> {
-    const response = await api.get<SystemInfo>('/api/system/info');
-    return response.data;
+    const response = await api.get<{success: boolean; data: SystemInfo}>('/api/system/info');
+    return response.data.data;
   },
 
   // 获取代理状态
   async getProxyStatus(): Promise<ProxyStatus> {
-    const response = await api.get<ProxyStatus>('/api/proxy/status');
-    return response.data;
+    const response = await api.get<{success: boolean; data: ProxyStatus}>('/api/proxy/status');
+    return response.data.data;
   },
 
   // 启动代理

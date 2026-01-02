@@ -1,6 +1,18 @@
 import axios, { AxiosError } from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { AccountRepository } from '../database/AccountRepository';
 import { logger } from '../config/logger';
+
+// 代理配置
+const PROXY_URL = 'http://127.0.0.1:7897';
+const httpsAgent = new HttpsProxyAgent(PROXY_URL);
+
+// Google OAuth 配置
+const CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
+const CLIENT_SECRET = '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';
+
+// 启动时输出代理配置
+logger.info(`代理配置: ${PROXY_URL}`);
 
 interface ProxyRequestOptions {
   model: string;
@@ -103,8 +115,8 @@ export class ProxyService {
       // 将 OpenAI 格式转换为 Gemini 格式
       const geminiRequest = this.convertToGeminiFormat(options);
 
-      // 调用 Gemini API
-      const response = await this.callGeminiAPI(account.token.access_token, geminiRequest);
+      // 调用 Gemini API（传递整个 account 对象）
+      const response = await this.callGeminiAPI(account, geminiRequest);
 
       // 将 Gemini 响应转换回 OpenAI 格式
       return this.convertToOpenAIFormat(response, options.model);
@@ -146,18 +158,112 @@ export class ProxyService {
   /**
    * 调用 Gemini API
    */
-  private async callGeminiAPI(accessToken: string, requestBody: any): Promise<any> {
+  private async callGeminiAPI(account: any, requestBody: any): Promise<any> {
     const model = 'gemini-2.0-flash-exp'; // 默认模型
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${accessToken}`;
+    logger.info(`调用 Gemini API: ${model}`);
 
-    const response = await axios.post(url, requestBody, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 60000,
+    // 获取有效的 access_token
+    const accessToken = await this.getValidAccessToken(account.token.refresh_token);
+
+    // 使用 Cloud Code v1internal 端点（与原实现一致）
+    const endpoints = [
+      'https://cloudcode-pa.googleapis.com/v1internal',  // 主要端点
+      'https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal',  // 备用端点
+    ];
+
+    let lastError: any = null;
+
+    // 尝试所有端点，失败时自动切换
+    for (let i = 0; i < endpoints.length; i++) {
+      const baseUrl = endpoints[i];
+      const url = `${baseUrl}/${model}:generateContent`;
+
+      try {
+        logger.info(`尝试端点 ${i + 1}/${endpoints.length}: ${baseUrl}`);
+
+        const response = await axios.post(url, requestBody, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'User-Agent': 'antigravity/1.11.9 windows/amd64',
+          },
+          httpsAgent,
+          timeout: 60000,
+        });
+
+        logger.info(`Gemini API 调用成功 (端点 ${i + 1}/${endpoints.length})`);
+        return response.data;
+      } catch (error: any) {
+        lastError = error;
+        logger.error(`端点 ${i + 1}/${endpoints.length} 失败:`, {
+          status: error.response?.status,
+          message: error.message,
+        });
+
+        // 如果还有下一个端点，继续尝试
+        if (i < endpoints.length - 1) {
+          logger.info('切换到下一个端点...');
+          continue;
+        }
+      }
+    }
+
+    // 所有端点都失败了
+    logger.error('所有端点均失败，最后错误:', {
+      message: lastError.message,
+      code: lastError.code,
+      status: lastError.response?.status,
+      statusText: lastError.response?.statusText,
+      data: lastError.response?.data,
     });
+    throw lastError;
+  }
 
-    return response.data;
+  /**
+   * 获取有效的 access_token
+   */
+  private async getValidAccessToken(refreshToken: string): Promise<string> {
+    try {
+      logger.info('开始刷新 access_token...');
+
+      const response = await axios.post(
+        'https://oauth2.googleapis.com/token',
+        new URLSearchParams({
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          refresh_token: refreshToken,
+          grant_type: 'refresh_token',
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          httpsAgent,
+          timeout: 30000,
+        }
+      );
+
+      logger.info('access_token 刷新成功');
+      return response.data.access_token;
+    } catch (error: any) {
+      logger.error('获取 access_token 失败，详细信息:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+      });
+
+      if (error.code === 'ECONNREFUSED') {
+        throw new Error('无法连接到代理服务器，请检查 Clash 是否启动');
+      } else if (error.code === 'ETIMEDOUT') {
+        throw new Error('连接超时，请检查网络或代理设置');
+      } else if (error.response?.status === 401) {
+        throw new Error('refresh_token 无效或已过期，请重新授权');
+      } else {
+        throw new Error(`认证失败: ${error.message}`);
+      }
+    }
   }
 
   /**

@@ -57,7 +57,7 @@ router.get('/:id', (req: Request, res: Response) => {
  * POST /api/accounts
  * 添加账号
  */
-router.post('/', (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { email, refreshToken } = req.body;
 
@@ -69,7 +69,7 @@ router.post('/', (req: Request, res: Response) => {
       });
     }
 
-    const account = accountService.addAccount(email, refreshToken);
+    const account = await accountService.addAccount(email, refreshToken);
     const response: ApiResponse = {
       success: true,
       data: account,
