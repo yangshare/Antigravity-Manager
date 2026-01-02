@@ -1,0 +1,42 @@
+{
+  "name": "antigravity-server",
+  "version": "1.0.0",
+  "description": "Antigravity Web Server - 独立的账号管理和 API 反代服务",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "antigravity",
+    "api-proxy",
+    "account-management"
+  ],
+  "author": "Antigravity Team",
+  "license": "CC-BY-NC-SA-4.0",
+  "dependencies": {
+    "axios": "^1.6.5",
+    "better-sqlite3": "9.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.5",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}

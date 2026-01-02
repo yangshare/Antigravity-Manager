@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_dir",
+      "Bash(openspec-cn list:*)",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__activate_project",
+      "mcp__serena__get_symbols_overview",
+      "Bash(openspec-cn validate:*)",
+      "mcp__serena__replace_content",
+      "Bash(pnpm install)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(if exist node_modules rmdir /s /q node_modules)",
+      "Bash(ppm rebuild:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm exec node-gyp:*)",
+      "Bash(npx node-gyp rebuild:*)"
+    ]
+  }
+}
